@@ -1,4 +1,5 @@
 import axios from 'axios'
+import {getToken} from '@/util/getData.js'
 
 const service = axios.create({
   baseURL: process.env.VUE_APP_BASE_API, // api 的 base_url
@@ -17,7 +18,7 @@ service.interceptors.request.use(
     const url = config.url.replace(config.baseURL, '');
 
     // if (store.getters.token) {
-    config.headers["Authorization"] = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjA2NDE3NzE3NTM2ODk0OTc2IiwibmFtZSI6IldXV1dXIiwiZXhwIjoxNTgzODI4MzA2fQ.k7MQww63zc3h4lNuUfAUcUxvtldkxQp4djObk0HUJ8g';
+    config.headers["Authorization"] = getToken();
     //config.headers["Authorization"] = 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYmYiOjE1ODUwMzUzNjMsImV4cCI6MTU4NTExOTA1MiwiaXNzIjoiaHR0cHM6Ly91Y2xvdWQudGFpY2h1YW4ubmV0IiwiYXVkIjoidWhvbWUiLCJjbGllbnRfaWQiOiJ1aG9tZS5pb3MiLCJzdWIiOiIxMTk3NjgwNTE4MjgwNjU0ODQ4IiwiYXV0aF90aW1lIjoxNTg1MDM1MzYzLCJpZHAiOiJsb2NhbCIsInJvbGUiOiJVU0VSIiwibmFtZSI6IjEzNjAwMDAwMDA3IiwidGVuYW50X2lkIjoiMTAwMDAiLCJzY29wZSI6WyJvcGVuaWQiLCJwcm9maWxlIiwidWhvbWUiLCJ1aG9tZS5vMm8iLCJ1aG9tZS5wYXJrIiwidWhvbWUucmtlIl0sImFtciI6WyJwd2QiXSwianRpIjoiNDQyOTU1N2QtYjM5NC00ZGUyLWE5ZDQtNTE2YjNjOWI4NGQ1IiwiaWF0IjoxNTg1MTE1NDUyfQ.gvZQOoGIHrTIbN_uWypS1GE8Wm66BWSSvC--uMbi4gk' ;
 
     // }

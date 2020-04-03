@@ -7,8 +7,8 @@
     <div class="center" v-html="data.content"></div>
     <div class="footer">
       <p class="num">
-        阅读  
-        <span>  {{ data.views }}</span>
+        阅读
+        <span> {{ data.views }}</span>
       </p>
     </div>
   </div>
@@ -36,6 +36,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+body {
+  background-color: #fff;
+}
 .header {
   height: 30vw;
   padding: 0 4%;

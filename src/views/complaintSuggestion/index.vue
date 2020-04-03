@@ -99,7 +99,11 @@
                 :to="`/Evaluate?type=0&id=${item.id}`"
                 >评价</van-button
               >
-              <van-button round class="toDetails" :to="`details?id=${item.id}`"
+              <van-button
+                round
+                class="toDetails"
+                @click="toDetails(item.id)"
+                :to="`details?id=${item.id}`"
                 >查看详情</van-button
               >
             </van-cell-group>
@@ -119,6 +123,10 @@ import { uploaderImg, getList, submitInfo } from "@/api/complaintSuggestion.js";
 import { param2Obj } from "@/util";
 import NotData from "@/components/NotData";
 import { Icon } from "vant";
+import lrz from "lrz";
+
+//测试更改小区ID
+import { getComId } from "@/util/getData";
 
 Vue.use(Toast);
 Vue.use(List);
@@ -155,7 +163,7 @@ export default {
       fileList: [],
       imgList: [],
       params: {
-        community_id: "1234754332424286208",
+        community_id: getComId(),
         complaint_type: null,
         description: "",
         image: []
@@ -193,12 +201,19 @@ export default {
     }
   },
   methods: {
+    //路由跳转
+    toDetails(id) {
+      location.href = `./#/complaintSuggestion/details?id=${id}`;
+    },
     //图片旋转
     rotate(file, index) {
-      this.fileList[index.index].content = null;
-      selectFileImage(file.file).then(res => {
-        this.fileList[index.index].content = res;
-      });
+      for (let i of file) {
+        this.fileList[index.index].content = null;
+        selectFileImage(i.file).then(res => {
+          this.fileList[index.index].content = res;
+          index.index++;
+        });
+      }
     },
     //切换tab
     changeTab() {
@@ -246,74 +261,70 @@ export default {
     //图片上传
     uploadImg() {
       return new Promise((resolve, reject) => {
-        console.log(this.fileList);
         getImgUrl(this.fileList, 0);
         var that = this;
         function getImgUrl(fileList, num) {
-          // 大于1.5MB的jpeg和png图片都缩小像素上传
-          if (
-            /\/(?:jpeg|png)/i.test(fileList[num].file.type) &&
-            fileList[num].file.size > 20000
-          ) {
-            let cal = (1024 * 1024) / fileList[num].file.size;
-            // 创建Canvas对象(画布)
-            let canvas = document.createElement("canvas");
-            // 获取对应的CanvasRenderingContext2D对象(画笔)
-            let context = canvas.getContext("2d");
-            // 创建新的图片对象
-            let img = new Image();
-            // 指定图片的DataURL(图片的base64编码数据)
-            img.src = fileList[num].content;
-            // 监听浏览器加载图片完成，然后进行进行绘制
-            img.onload = () => {
-              let imageWidth = img.width * cal, //压缩后图片的宽度
-                imageHeight = img.height * cal;
-              // 指定canvas画布大小，该大小为最后生成图片的大小
-              canvas.width = imageWidth;
-              canvas.height = imageHeight;
-              /* drawImage画布绘制的方法。(0,0)表示以Canvas画布左上角为起点，400，300是将图片按给定的像素进行缩小。
-        如果不指定缩小的像素图片将以图片原始大小进行绘制，图片像素如果大于画布将会从左上角开始按画布大小部分绘制图片，最后的图片就是张局部图。*/
-              context.drawImage(img, 0, 0, imageWidth, imageHeight);
-              // 将绘制完成的图片重新转化为base64编码，file.file.type为图片类型，0.92为压缩质量
-              let image = canvas.toDataURL(fileList[num].file.type, 0.35);
-
-              let imgFile = dataURLtoFile(image, "img");
-              let data = new FormData();
+          var data;
+          if (!/\/(?:jpeg|png)/i.test(fileList[num].file.type)) {
+            Toast.fail("请上传jpeg或png图片");
+            reject();
+          }
+          if (fileList[num].file.size > 150000) {
+            // 压缩前文件大小
+            let before = fileList[num].file.size / 1024;
+            let imgUrl = URL.createObjectURL(fileList[num].file, {
+              quality: 0.2
+            });
+            lrz(imgUrl).then(rst => {
+              // 压缩后文件大小
+              let after = rst.fileLen / 1024;
+              console.log(fileList[num].file.size+'和'+after)
+              data = rst.formData;
+              upload();
+            });
+          }else{
+              let imgFile = dataURLtoFile(fileList[num].content, "img");
+              data = new FormData();
               data.append("file", imgFile);
-              uploaderImg(data)
-                .then(res => {
-                  if (res.data.code == 0) {
-                    that.params.image.push(res.data.data);
-                    if (num < fileList.length - 1) {
-                      num++;
-                      getImgUrl(fileList, num);
-                    } else {
-                      resolve();
-                    }
+              upload();
+          }
+
+          //   //图片上传
+          function upload() {
+            uploaderImg(data)
+              .then(res => {
+                if (res.data.code == 0) {
+                  that.params.image.push(res.data.data);
+                  if (num < fileList.length - 1) {
+                    num++;
+                    getImgUrl(fileList, num);
                   } else {
-                    Toast.fail(res.data.message);
-                    that.params.image = [];
-                    reject();
+                    resolve();
                   }
-                })
-                .catch(err => {
+                } else {
+                  Toast.fail(res.data.message);
                   that.params.image = [];
-                  reject();
-                });
-            };
+                  reject(res.data.message);
+                }
+              })
+              .catch(err => {
+                that.params.image = [];
+                reject();
+              });
           }
-          // base64转file
-          function dataURLtoFile(dataurl, filename) {
-            var arr = dataurl.split(","),
-              mime = arr[0].match(/:(.*?);/)[1],
-              bstr = atob(arr[1]),
-              n = bstr.length,
-              u8arr = new Uint8Array(n);
-            while (n--) {
-              u8arr[n] = bstr.charCodeAt(n);
+
+          //   // base64转file
+            function dataURLtoFile(dataurl, filename) {
+              var arr = dataurl.split(","),
+                mime = arr[0].match(/:(.*?);/)[1],
+                bstr = atob(arr[1]),
+                n = bstr.length,
+                u8arr = new Uint8Array(n);
+              while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+              }
+              return new File([u8arr], filename, { type: mime });
             }
-            return new File([u8arr], filename, { type: mime });
-          }
         }
       });
     },
@@ -334,7 +345,6 @@ export default {
             })
             .catch(() => {
               this.loading = false;
-              resolve();
             });
         } else {
           this.params.image = null;
@@ -356,7 +366,7 @@ export default {
     //初始化
     init() {
       this.params = {
-        community_id: "1234754332424286208",
+        community_id: getComId(),
         complaint_type: null,
         description: "",
         image: []

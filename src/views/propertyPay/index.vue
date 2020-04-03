@@ -49,22 +49,12 @@
             </div>
             <div class="footer">
               <van-cell-group>
-                <van-cell title="费用日期" :value="changeTime(item)" />
+                <van-cell title="缴费月份" :value="changeTime(item)" />
                 <van-cell title="房间" :value="item.room_address" />
                 <van-cell title="备注" :value="item.note" />
               </van-cell-group>
             </div>
           </div>
-          <van-submit-bar
-            :price="payMoney"
-            v-show="!isLoading"
-            button-text="支付"
-            @submit="onSubmit"
-          >
-            <van-checkbox v-model="isAll" :name="0" @click="checkAll"
-              >全选</van-checkbox
-            >
-          </van-submit-bar>
         </van-list>
       </van-tab>
       <van-tab title="已缴">
@@ -74,7 +64,7 @@
             clickable
             name="datetimePicker"
             :value="value"
-            label="缴费日期"
+            label="缴费月份"
             :placeholder="value"
             right-icon="arrow"
             input-align="right"
@@ -106,7 +96,7 @@
                       :value="item.total_amount | changeMoney"
                       class="moneyInput"
                     />
-                    <van-cell title="费用日期" :value="changeTime(item)" />
+                    <van-cell title="缴费月份" :value="changeTime(item)" />
                   </div>
 
                   <van-cell
@@ -116,9 +106,7 @@
                     @click="toDetails(item)"
                   >
                     <template slot="title">
-                      <span class="custom-title">{{
-                        item.pay_time | updateTime
-                      }}</span>
+                      <span class="custom-title">{{ item.pay_time }}</span>
                     </template>
                   </van-cell>
                 </van-cell-group>
@@ -127,8 +115,19 @@
           </van-list>
         </div>
       </van-tab>
+
       <not-data v-if="isNotData" />
     </van-pull-refresh>
+    <van-submit-bar
+      :price="payMoney"
+      v-show="active == 0"
+      button-text="支付"
+      @submit="onSubmit"
+    >
+      <van-checkbox v-model="isAll" :name="0" @click="checkAll"
+        >全选</van-checkbox
+      >
+    </van-submit-bar>
   </van-tabs>
 </template>
 
@@ -149,6 +148,9 @@ import { Toast } from "vant";
 import { getList } from "@/api/propertyPay.js";
 import { changeTimeFormat } from "@/util/updateTime";
 import { param2Obj } from "@/util";
+
+//测试更改小区ID
+import { getComId } from "@/util/getData";
 
 Vue.use(SubmitBar);
 Vue.use(Field);
@@ -182,7 +184,7 @@ export default {
       active: 0,
       params: {
         bill_status: 1,
-        community_id: "5df1d3d7c2df16283cab6599",
+        community_id: getComId(),
         pay_date: null
       }
     };
@@ -224,6 +226,7 @@ export default {
       if (this.active == 1) {
         this.params.bill_status = 2;
       } else {
+        this.value = "";
         this.params.bill_status = 1;
         this.params.pay_date = null;
       }
@@ -260,16 +263,21 @@ export default {
           for (let i in this.list) {
             this.list[i].isCheck = true;
             this.payMoney += this.list[i].total_amount * 100;
+            this.checked = this.list.length;
           }
         } else {
           for (let i in this.list) {
             this.list[i].isCheck = false;
+            this.checked = 0;
           }
         }
       }
     },
     onRefresh() {
+      this.checked = 0;
       this.list = [];
+      this.isAll = false;
+      this.payMoney = 0;
       this.isLoading = true;
       this.getListData(true);
     },
@@ -302,17 +310,17 @@ export default {
             this.finished = true;
             if (!res.data.data) {
               this.isNotData = true;
-            }
+            } else {
+              if (res.data.data.length > 0) {
+                this.isNotData = false;
 
-            if (res.data.data.length > 0) {
-              this.isNotData = false;
-
-              for (let i in res.data.data) {
-                res.data.data[i].isCheck = false;
+                for (let i in res.data.data) {
+                  res.data.data[i].isCheck = false;
+                }
               }
-            }
 
-            this.list = res.data.data;
+              this.list = res.data.data;
+            }
             if (state[0]) {
               Toast.success("刷新成功");
               this.isLoading = false;
@@ -321,6 +329,7 @@ export default {
           }
         })
         .catch(err => {
+          console.log(err);
           this.finished = true;
           Toast.fail("网络异常，请稍后重试");
           this.isLoading = false;
@@ -463,5 +472,10 @@ export default {
       }
     }
   }
+}
+
+/deep/.van-tabs__content {
+  height: calc(100vh - 7.5rem) !important;
+  overflow: auto;
 }
 </style>

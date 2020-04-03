@@ -116,9 +116,8 @@ export default {
         this.isDisabled = false;
         return;
       }
-      console.log(param2Obj(location.href).type)
       //投诉建议
-      if (!!!param2Obj(location.href).type) {
+      if (param2Obj(location.href).type==0) {
         complaintEvaluate(this.params).then(res => {
           if (res.data.code == 0) {
             Toast.success("提交成功");

@@ -6,69 +6,69 @@
     line-width="30%"
     @change="changeTab"
   >
-    <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
-      <van-tab title="快速报修">
-        <div class="header">
-          <van-cell
-            title="报修房间"
-            is-link
-            :value="roomName"
-            @click="showPicker = true"
+    <van-tab title="快速报修">
+      <div class="header">
+        <van-cell
+          title="报修房间"
+          is-link
+          :value="roomName"
+          @click="showPicker = true"
+        />
+        <van-popup v-model="showPicker" position="bottom">
+          <van-picker
+            show-toolbar
+            :columns="columns"
+            @cancel="showPicker = false"
+            @confirm="onConfirm"
           />
-          <van-popup v-model="showPicker" position="bottom">
-            <van-picker
-              show-toolbar
-              :columns="columns"
-              @cancel="showPicker = false"
-              @confirm="onConfirm"
-            />
-          </van-popup>
-          <van-field
-            v-model="params.repairer"
-            label="报修人"
-            maxlength="10"
-            input-align="right"
-          />
-          <van-field
-            v-model="params.telephone"
-            label="报修电话"
-            maxlength="11"
-            input-align="right"
-          />
+        </van-popup>
+        <van-field
+          v-model="params.repairer"
+          label="报修人"
+          maxlength="10"
+          input-align="right"
+        />
+        <van-field
+          v-model="params.telephone"
+          label="报修电话"
+          maxlength="11"
+          input-align="right"
+        />
+      </div>
+      <div class="center">
+        <van-field
+          v-model="params.description"
+          rows="1"
+          maxlength="100"
+          :autosize="{ maxHeight: 150, minHeight: 100 }"
+          type="textarea"
+          placeholder="请简要描述您的问题，以便我们提供更好的帮助"
+          show-word-limit
+        />
+        <div class="ImgBox">
+          <van-uploader
+            v-model="fileList"
+            max-count="4"
+            max-size="200000000"
+            :after-read="rotate"
+            multiple
+          >
+            <van-button icon="plus"></van-button>
+          </van-uploader>
         </div>
-        <div class="center">
-          <van-field
-            v-model="params.description"
-            rows="1"
-            maxlength="100"
-            :autosize="{ maxHeight: 150, minHeight: 100 }"
-            type="textarea"
-            placeholder="请简要描述您的问题，以便我们提供更好的帮助"
-            show-word-limit
-          />
-          <div class="ImgBox">
-            <van-uploader
-              v-model="fileList"
-              max-count="4"
-              max-size="200000000"
-              :after-read="rotate"
-              multiple
-            >
-              <van-button icon="plus"></van-button>
-            </van-uploader>
-          </div>
-        </div>
-        <van-button
-          type="primary"
-          block
-          color="#4073F2"
-          @click="submit"
-          :loading="loading"
-          loading-text="提交中"
-          >提交</van-button
-        >
-      </van-tab>
-      <van-tab title="报修记录">
+      </div>
+      <van-button
+        type="primary"
+        block
+        color="#4073F2"
+        @click="submit"
+        :loading="loading"
+        loading-text="提交中"
+        >提交</van-button
+      >
+    </van-tab>
+    <van-tab title="报修记录">
+      <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
         <van-cell
           title="请选择状态"
           is-link
@@ -118,15 +118,15 @@
                 :to="`/Evaluate?type=1&id=${item.id}`"
                 >评价</van-button
               >
-              <van-button round class="toDetails" :to="`details?id=${item.id}`"
+              <van-button round class="toDetails" @click="toDetails(item.id)"
                 >查看详情</van-button
               >
             </van-cell-group>
           </div>
         </van-list>
-      </van-tab>
-      <not-data v-if="isNotData" />
-    </van-pull-refresh>
+        <not-data v-if="isNotData" />
+      </van-pull-refresh>
+    </van-tab>
   </van-tabs>
 </template>
 
@@ -153,6 +153,10 @@ import {
 import { param2Obj } from "@/util";
 import NotData from "@/components/NotData";
 import { Icon } from "vant";
+import lrz from "lrz";
+
+//测试更改小区ID
+import { getComId } from "@/util/getData";
 
 Vue.use(Dialog);
 Vue.use(Toast);
@@ -171,6 +175,7 @@ export default {
   },
   data() {
     return {
+      isTrue: false,
       finished: false,
       loading: false,
       isNotData: false,
@@ -180,7 +185,7 @@ export default {
       showPicker: false,
       showTypePicker: false,
       tipText: "没有更多了",
-      roomName: "请选择类型",
+      roomName: "请选择房间",
       value: "请选择类型",
       list: [],
       columns: [],
@@ -190,7 +195,7 @@ export default {
       imgList: [],
       roomIdArr: [],
       params: {
-        community_id: "1234754332424286208",
+        community_id: getComId(),
         room_id: null,
         repairer: null,
         telephone: null,
@@ -227,12 +232,22 @@ export default {
     }
   },
   methods: {
+    //路由跳转
+    toDetails(id) {
+      //ios出现页面加载出来了，但读的路由却是index
+      // this.$router.push({ path: `./details?id=${id}` });
+      location.href = `./#/quickRepair/details?id=${id}`;
+    },
     //图片旋转
     rotate(file, index) {
-      this.fileList[index.index].content = null;
-      selectFileImage(file.file).then(res => {
-        this.fileList[index.index].content = res;
-      });
+      console.log(file);
+      for (let i of file) {
+        this.fileList[index.index].content = null;
+        selectFileImage(i.file).then(res => {
+          this.fileList[index.index].content = res;
+          index.index++;
+        });
+      }
     },
     //切换tab
     changeTab() {
@@ -297,63 +312,59 @@ export default {
     //图片上传
     uploadImg() {
       return new Promise((resolve, reject) => {
-        console.log(this.fileList);
         getImgUrl(this.fileList, 0);
         var that = this;
         function getImgUrl(fileList, num) {
-          // 大于1.5MB的jpeg和png图片都缩小像素上传
-          if (
-            /\/(?:jpeg|png)/i.test(fileList[num].file.type) &&
-            fileList[num].file.size > 20000
-          ) {
-            let cal = (1024 * 1024) / fileList[num].file.size;
-            // 创建Canvas对象(画布)
-            let canvas = document.createElement("canvas");
-            // 获取对应的CanvasRenderingContext2D对象(画笔)
-            let context = canvas.getContext("2d");
-            // 创建新的图片对象
-            let img = new Image();
-            // 指定图片的DataURL(图片的base64编码数据)
-            img.src = fileList[num].content;
-            // 监听浏览器加载图片完成，然后进行进行绘制
-            img.onload = () => {
-              let imageWidth = img.width * cal, //压缩后图片的宽度
-                imageHeight = img.height * cal;
-              // 指定canvas画布大小，该大小为最后生成图片的大小
-              canvas.width = imageWidth;
-              canvas.height = imageHeight;
-              /* drawImage画布绘制的方法。(0,0)表示以Canvas画布左上角为起点，400，300是将图片按给定的像素进行缩小。
-        如果不指定缩小的像素图片将以图片原始大小进行绘制，图片像素如果大于画布将会从左上角开始按画布大小部分绘制图片，最后的图片就是张局部图。*/
-              context.drawImage(img, 0, 0, imageWidth, imageHeight);
-              // 将绘制完成的图片重新转化为base64编码，file.file.type为图片类型，0.92为压缩质量
-              let image = canvas.toDataURL(fileList[num].file.type, 0.35);
-
-              let imgFile = dataURLtoFile(image, "img");
-              let data = new FormData();
-              data.append("file", imgFile);
-              uploaderImg(data)
-                .then(res => {
-                  if (res.data.code == 0) {
-                    that.params.image.push(res.data.data);
-                    if (num < fileList.length - 1) {
-                      num++;
-                      getImgUrl(fileList, num);
-                    } else {
-                      resolve();
-                    }
-                  } else {
-                    Toast.fail(res.data.message);
-                    that.params.image = [];
-                    reject();
-                  }
-                })
-                .catch(err => {
-                  that.params.image = [];
-                  reject();
-                });
-            };
+          var data;
+          if (!/\/(?:jpeg|png)/i.test(fileList[num].file.type)) {
+            Toast.fail("请上传jpeg或png图片");
+            reject();
           }
-          // base64转file
+          if (fileList[num].file.size > 200000) {
+            // 压缩前文件大小
+            let before = fileList[num].file.size / 1024;
+            let imgUrl = URL.createObjectURL(fileList[num].file, {
+              quality: 0.2
+            });
+            lrz(imgUrl).then(rst => {
+              // 压缩后文件大小
+              let after = rst.fileLen / 1024;
+              console.log(num + "和" + after);
+              data = rst.formData;
+              upload();
+            });
+          } else {
+            let imgFile = dataURLtoFile(fileList[num].content, "img");
+            data = new FormData();
+            data.append("file", imgFile);
+            upload();
+          }
+
+          //   //图片上传
+          function upload() {
+            uploaderImg(data)
+              .then(res => {
+                if (res.data.code == 0) {
+                  that.params.image.push(res.data.data);
+                  if (num < fileList.length - 1) {
+                    num++;
+                    getImgUrl(fileList, num);
+                  } else {
+                    resolve();
+                  }
+                } else {
+                  Toast.fail(res.data.message);
+                  that.params.image = [];
+                  reject(res.data.message);
+                }
+              })
+              .catch(err => {
+                that.params.image = [];
+                reject();
+              });
+          }
+
+          //   // base64转file
           function dataURLtoFile(dataurl, filename) {
             var arr = dataurl.split(","),
               mime = arr[0].match(/:(.*?);/)[1],
@@ -394,22 +405,27 @@ export default {
             })
             .catch(() => {
               this.loading = false;
-              resolve();
             });
         } else {
           this.params.image = null;
           resolve();
         }
-      }).then(() => {
-        submitInfo(this.params).then(res => {
-          if (res.data.code == 0) {
-            this.init();
-            Toast.success("提交成功");
-          } else {
-            Toast.fail(res.data.message);
-          }
-          this.loading = false;
-        });
+      }).then(res => {
+        submitInfo(this.params)
+          .then(res => {
+            if (res.data.code == 0) {
+              this.init();
+              Toast.success("提交成功");
+            } else {
+              Toast.fail(res.data.message);
+            }
+            this.isTrue = false;
+            this.loading = false;
+          })
+          .catch(err => {
+            Toast.fail("网络异常，请稍后重试");
+            this.loading = false;
+          });
       });
     },
     //取消报修订单
@@ -437,11 +453,12 @@ export default {
     //初始化
     init() {
       this.params = {
-        community_id: "1234754332424286208",
+        community_id: getComId(),
         complaint_type: null,
         description: "",
         image: []
       };
+      this.roomName = "请选择房间";
       this.typeValue = "请选择类型";
       this.fileList = [];
     },
@@ -473,6 +490,7 @@ export default {
           this.isLoad = false;
         })
         .catch(err => {
+          this.finished = true;
           this.isLoading = false;
           Toast.fail("网络异常，请稍后重试");
           this.isLoad = false;

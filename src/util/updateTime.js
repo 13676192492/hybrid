@@ -22,6 +22,7 @@ export function changeTimeFormat(time, type = 0) {
         day = setDate(day);
         min = setDate(min)
         hours = setDate(hours)
+        sec = setDate(sec)
         return `${date.getFullYear()}-${month}-${day} ${hours}:${min}:${sec}`
     }
 

@@ -1,15 +1,24 @@
 import Vue from 'vue'
+import "@/assets/css/base.css";
+
 import App from './App.vue'
 import router from './router'
 import store from './store'
 import './icons'
 import 'amfe-flexible'
-import "@/assets/css/base.css";
 import VueWechatTitle from 'vue-wechat-title'
-import {Cell, CellGroup, Tab, Tabs, PullRefresh,Loading,Toast} from 'vant';
+import {
+  Cell,
+  CellGroup,
+  Tab,
+  Tabs,
+  PullRefresh,
+  Loading,
+  Toast
+} from 'vant';
 
-// import Vconsole from 'vconsole'
-// Vue.prototype.$vConsole = new Vconsole();
+import Vconsole from 'vconsole'
+Vue.prototype.$vConsole = new Vconsole();
 
 import commonComponents from './common-components.js';
 Vue.use(commonComponents);

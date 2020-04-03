@@ -40,7 +40,7 @@
       type="primary"
       block
       color="#4073F2"
-      v-if="info.state == 1 && info.degree == undefined"
+      v-if="info.state == 2 && info.degree == undefined"
       :to="`/Evaluate?type=1&id=${info.id}`"
       >评价</van-button
     >
@@ -60,7 +60,7 @@ export default {
       info: {}
     };
   },
-  mounted() {
+  created() {
     let id = param2Obj(location.href).id;
     this.getData(id);
   },

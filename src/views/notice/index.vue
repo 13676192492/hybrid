@@ -11,11 +11,11 @@
           <van-cell
             :title="item.title"
             is-link
-            :value="item.notice_time"
-            :to="`./details?id=${item.notice_community_id}`"
+            :value="item.notice_time|changeTime"
+            @click="toDetails(item.notice_community_id)"
           />
           <p class="summary van-multi-ellipsis--l3">
-            公告内容：{{ item.summary }}
+            {{ item.summary }}
           </p>
           <van-cell title="阅读" :value="item.views" class="number" />
         </van-cell-group>
@@ -31,6 +31,7 @@ import Vue from "vue";
 import { List,Toast } from "vant";
 import NotData from "@/components/NotData";
 import { getNoticeList } from "@/api/notice.js";
+import { changeTimeFormat } from "@/util/updateTime";
 
 Vue.use(List);
 Vue.use(Toast);
@@ -56,7 +57,15 @@ export default {
   mounted() {
     this.getList();
   },
+  filters:{
+    changeTime(val){
+      return changeTimeFormat(val)
+    }
+  },
   methods: {
+    toDetails(id){
+      location.href = `./#/notice/details?id=${id}`
+    },
     getList() {
       if (!this.isLoad) {
         this.isLoad = true;

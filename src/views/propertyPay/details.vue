@@ -37,7 +37,7 @@
       <van-cell-group class="baseInfo">
         <van-cell title="缴费住户" class="title" :value="info.username" />
         <van-cell title="付款方式" class="title" :value="info.payment_method" />
-        <van-cell title="支付时间" class="title" :value="info.pay_time | updateTime" />
+        <van-cell title="支付时间" class="title" :value="info.pay_time" />
         <van-cell title="备注" class="title" :value="info.note" />
       </van-cell-group>
     </div>

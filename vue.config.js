@@ -2,6 +2,7 @@ module.exports = {
   configureWebpack: {
     devtool: 'souce-map'
   },
+  publicPath: './',
   //eslint是否启用
   lintOnSave: false,
   //指定生成的 index.html 的输出路径  (打包之后，改变系统默认的index.html的文件名)

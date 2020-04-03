@@ -4,7 +4,16 @@ import App from '@/App'
 
 Vue.use(VueRouter)
 
-const routes = [{
+const routes = [
+  {
+    path: '/',
+    name: 'index',
+    // component: App,
+    meta: {
+      title: '入口'
+    },
+    component: () => import('@/components/Entrance')
+  },{
     path: '/propertyPay',
     meta: {
       title: '物业缴费'
@@ -145,6 +154,7 @@ const routes = [{
 ]
 
 const router = new VueRouter({
+  mode:'hash',
   routes
 })
 
