@@ -1,9 +1,9 @@
 import request from '@/util/request'
 
 //获取用户房间
-export function getMemberRoom() {
+export function getMemberRoom(id) {
     return request({
-        url: '/wuye/api/repair/app/room',
+        url: '/wuye/api/repair/app/room/'+id,
         method: 'get'
     })
 }

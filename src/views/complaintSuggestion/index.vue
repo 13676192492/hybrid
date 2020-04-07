@@ -95,6 +95,14 @@
                 type="default"
                 round
                 class="evaluate"
+                v-if="item.state == 0"
+                @click="cancelOrder(item.id,item.complaint_type)"
+                >取消{{ item.complaint_type }}</van-button
+              >
+              <van-button
+                type="default"
+                round
+                class="evaluate"
                 v-if="item.state == 1 && item.degree == undefined"
                 :to="`/Evaluate?type=0&id=${item.id}`"
                 >评价</van-button
@@ -118,16 +126,31 @@
 <script>
 import Vue from "vue";
 import { selectFileImage } from "@/util/rotateImg";
-import { Popup, Field, Picker, Uploader, Button, List, Toast } from "vant";
-import { uploaderImg, getList, submitInfo } from "@/api/complaintSuggestion.js";
+import {
+  Popup,
+  Field,
+  Picker,
+  Uploader,
+  Button,
+  List,
+  Toast,
+  Dialog,
+} from "vant";
+import {
+  uploaderImg,
+  getList,
+  submitInfo,
+  cancel,
+} from "@/api/complaintSuggestion.js";
 import { param2Obj } from "@/util";
 import NotData from "@/components/NotData";
 import { Icon } from "vant";
 import lrz from "lrz";
 
 //测试更改小区ID
-import { getComId } from "@/util/getData";
+import { getComId } from "@/util/getData.js";
 
+Vue.use(Dialog);
 Vue.use(Toast);
 Vue.use(List);
 Vue.use(Icon);
@@ -140,7 +163,7 @@ Vue.use(Popup);
 export default {
   name: "complaintSuggestion",
   components: {
-    NotData
+    NotData,
   },
   data() {
     return {
@@ -166,19 +189,19 @@ export default {
         community_id: getComId(),
         complaint_type: null,
         description: "",
-        image: []
+        image: [],
       },
       listParams: {
         pageNum: 1,
         pageSize: 10,
-        state: null
-      }
+        state: null,
+      },
     };
   },
   filters: {
     changeMoney(val) {
       return val.toFixed(2).toLocaleString();
-    }
+    },
   },
   mounted() {
     let init = param2Obj(location.href);
@@ -198,7 +221,7 @@ export default {
         default:
           return "已取消";
       }
-    }
+    },
   },
   methods: {
     //路由跳转
@@ -209,7 +232,7 @@ export default {
     rotate(file, index) {
       for (let i of file) {
         this.fileList[index.index].content = null;
-        selectFileImage(i.file).then(res => {
+        selectFileImage(i.file).then((res) => {
           this.fileList[index.index].content = res;
           index.index++;
         });
@@ -226,17 +249,20 @@ export default {
         this.init();
       }
     },
+    //下拉刷新
     onRefresh() {
       this.listParams.pageNum = 1;
       this.listParams.pageSize = 10;
       this.list = [];
       this.getListData(true);
     },
+    //切换选项
     onConfirm(value, index) {
       this.params.complaint_type = value;
       this.typeValue = value;
       this.showPicker = false;
     },
+    //切换选项
     onConfirmType(value, index) {
       switch (index) {
         case 0:
@@ -258,11 +284,33 @@ export default {
       this.getListData();
       this.showTypePicker = false;
     },
+    //取消投诉建议
+    cancelOrder(id,type) {
+      Dialog.confirm({
+        title: "确认",
+        message: `是否取消${type}`,
+      })
+        .then(() => {
+          cancel(id).then((res) => {
+            if (res.data.code == 0) {
+              Toast.success("取消成功");
+              this.list = [];
+              this.finished = false;
+
+              this.listParams.pageNum = 1;
+
+              this.getListData();
+            }
+          });
+        })
+        .catch(() => {});
+    },
     //图片上传
     uploadImg() {
       return new Promise((resolve, reject) => {
         getImgUrl(this.fileList, 0);
         var that = this;
+
         function getImgUrl(fileList, num) {
           var data;
           if (!/\/(?:jpeg|png)/i.test(fileList[num].file.type)) {
@@ -273,26 +321,26 @@ export default {
             // 压缩前文件大小
             let before = fileList[num].file.size / 1024;
             let imgUrl = URL.createObjectURL(fileList[num].file, {
-              quality: 0.2
+              quality: 0.2,
             });
-            lrz(imgUrl).then(rst => {
+            lrz(imgUrl, { width: 640 }).then((rst) => {
               // 压缩后文件大小
               let after = rst.fileLen / 1024;
-              console.log(fileList[num].file.size+'和'+after)
+              console.log(fileList[num].file.size + "和" + after);
               data = rst.formData;
               upload();
             });
-          }else{
-              let imgFile = dataURLtoFile(fileList[num].content, "img");
-              data = new FormData();
-              data.append("file", imgFile);
-              upload();
+          } else {
+            let imgFile = dataURLtoFile(fileList[num].content, "img");
+            data = new FormData();
+            data.append("file", imgFile);
+            upload();
           }
 
-          //   //图片上传
+          //图片上传
           function upload() {
             uploaderImg(data)
-              .then(res => {
+              .then((res) => {
                 if (res.data.code == 0) {
                   that.params.image.push(res.data.data);
                   if (num < fileList.length - 1) {
@@ -307,35 +355,35 @@ export default {
                   reject(res.data.message);
                 }
               })
-              .catch(err => {
+              .catch((err) => {
                 that.params.image = [];
                 reject();
               });
           }
 
-          //   // base64转file
-            function dataURLtoFile(dataurl, filename) {
-              var arr = dataurl.split(","),
-                mime = arr[0].match(/:(.*?);/)[1],
-                bstr = atob(arr[1]),
-                n = bstr.length,
-                u8arr = new Uint8Array(n);
-              while (n--) {
-                u8arr[n] = bstr.charCodeAt(n);
-              }
-              return new File([u8arr], filename, { type: mime });
+          // base64转file
+          function dataURLtoFile(dataurl, filename) {
+            var arr = dataurl.split(","),
+              mime = arr[0].match(/:(.*?);/)[1],
+              bstr = atob(arr[1]),
+              n = bstr.length,
+              u8arr = new Uint8Array(n);
+            while (n--) {
+              u8arr[n] = bstr.charCodeAt(n);
             }
+            return new File([u8arr], filename, { type: mime });
+          }
         }
       });
     },
-
+    //提交
     submit() {
       if (!this.params.complaint_type || !this.params.description) {
         Toast("请先填写类型和内容");
         return;
       }
       this.loading = true;
-      new Promise(resolve => {
+      new Promise((resolve) => {
         if (this.fileList.length > 0) {
           this.params.image = [];
           this.uploadImg()
@@ -351,7 +399,7 @@ export default {
           resolve();
         }
       }).then(() => {
-        submitInfo(this.params).then(res => {
+        submitInfo(this.params).then((res) => {
           if (res.data.code == 0) {
             this.init();
             Toast.success("提交成功");
@@ -362,14 +410,13 @@ export default {
         });
       });
     },
-
     //初始化
     init() {
       this.params = {
         community_id: getComId(),
         complaint_type: null,
         description: "",
-        image: []
+        image: [],
       };
       this.typeValue = "请选择类型";
       this.fileList = [];
@@ -378,7 +425,7 @@ export default {
     getListData(...state) {
       this.loading = true;
       getList(this.listParams)
-        .then(res => {
+        .then((res) => {
           if (res.data.code == 0) {
             if (res.data.data.list.length < 1 && this.listParams.pageNum == 1) {
               this.tipText = "";
@@ -401,13 +448,13 @@ export default {
           this.loading = false;
           this.isLoad = false;
         })
-        .catch(err => {
+        .catch((err) => {
           this.isLoading = false;
           this.isLoad = false;
           this.loading = false;
         });
-    }
-  }
+    },
+  },
 };
 </script>
 

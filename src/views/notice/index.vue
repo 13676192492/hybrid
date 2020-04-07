@@ -11,7 +11,7 @@
           <van-cell
             :title="item.title"
             is-link
-            :value="item.notice_time|changeTime"
+            :value="item.notice_time"
             @click="toDetails(item.notice_community_id)"
           />
           <p class="summary van-multi-ellipsis--l3">

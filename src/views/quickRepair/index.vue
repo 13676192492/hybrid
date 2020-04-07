@@ -215,6 +215,12 @@ export default {
     }
   },
   mounted() {
+    let init = param2Obj(location.href);
+    if (init) {
+      this.active = parseInt(init.tab);
+    } else {
+      this.active = 0;
+    }
     this.getRoom();
   },
   filters: {
@@ -300,7 +306,7 @@ export default {
     },
     //获取房间
     getRoom() {
-      getMemberRoom().then(res => {
+      getMemberRoom(getComId()).then(res => {
         if (res.data.code == 0) {
           for (let i of res.data.data) {
             this.roomIdArr.push(i.room_id);
@@ -326,7 +332,7 @@ export default {
             let imgUrl = URL.createObjectURL(fileList[num].file, {
               quality: 0.2
             });
-            lrz(imgUrl).then(rst => {
+            lrz(imgUrl,{width: 640}).then(rst => {
               // 压缩后文件大小
               let after = rst.fileLen / 1024;
               console.log(num + "和" + after);

@@ -34,3 +34,11 @@ export function getdetails(id) {
         method: 'get'
     })
 }
+
+//取消
+export function cancel(id) {
+    return request({
+        url: `/wuye/api/complaint/app/cancel/${id}`,
+        method: 'put'
+    })
+}

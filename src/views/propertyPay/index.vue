@@ -8,6 +8,7 @@
   >
     <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
       <van-tab title="待缴">
+        <input type="button" value="111" @click="test1" />>
         <van-list
           v-model="loading"
           :finished="finished"
@@ -141,7 +142,7 @@ import {
   Form,
   Field,
   SubmitBar,
-  List
+  List,
 } from "vant";
 import NotData from "@/components/NotData";
 import { Toast } from "vant";
@@ -164,7 +165,7 @@ Vue.use(List);
 export default {
   name: "propertyPay",
   components: {
-    NotData
+    NotData,
   },
   data() {
     return {
@@ -185,8 +186,8 @@ export default {
       params: {
         bill_status: 1,
         community_id: getComId(),
-        pay_date: null
-      }
+        pay_date: null,
+      },
     };
   },
   filters: {
@@ -195,12 +196,31 @@ export default {
     },
     updateTime(val) {
       return changeTimeFormat(val, 3);
-    }
+    },
   },
   mounted() {
+    let init = param2Obj(location.href);
+    if (init) {
+      this.active = parseInt(init.tab);
+      if (this.active == 1) {
+        this.params.bill_status = 2;
+      }
+    } else {
+      this.active = 0;
+    }
     this.getListData();
+    // window.test = this.test;
   },
   methods: {
+    // test1() {
+    //   window.webkit.messageHandlers.test.postMessage();
+    // },
+    // //測試
+    // test(token, comId) {
+    //   console.log(token + "和" + comId);
+
+    //   this.getListData();
+    // },
     //路由跳转（明细）
     run(arr) {
       this.$store.commit("update", arr);
@@ -230,6 +250,7 @@ export default {
         this.params.bill_status = 1;
         this.params.pay_date = null;
       }
+      console.log(123);
       this.getListData();
     },
     //选择事件
@@ -305,7 +326,7 @@ export default {
       this.loading = true;
 
       getList(this.params)
-        .then(res => {
+        .then((res) => {
           if (res.data.code == 0) {
             this.finished = true;
             if (!res.data.data) {
@@ -328,7 +349,7 @@ export default {
             this.loading = false;
           }
         })
-        .catch(err => {
+        .catch((err) => {
           console.log(err);
           this.finished = true;
           Toast.fail("网络异常，请稍后重试");
@@ -336,8 +357,8 @@ export default {
           this.isLoad = false;
           this.loading = false;
         });
-    }
-  }
+    },
+  },
 };
 </script>
 
