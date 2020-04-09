@@ -6,7 +6,8 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     info: [],
-    detailsInfo: null
+    detailsInfo: null,
+    isLoad: false
   },
   mutations: {
     update(state, val) {
@@ -14,6 +15,9 @@ export default new Vuex.Store({
     },
     details(state, val) {
       state.detailsInfo = val;
+    },
+    changeLoadType(state,val){
+      state.isLoad = val;
     }
   },
   actions: {},

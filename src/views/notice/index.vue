@@ -28,50 +28,55 @@
 
 <script>
 import Vue from "vue";
-import { List,Toast } from "vant";
+import { List, Toast } from "vant";
 import NotData from "@/components/NotData";
 import { getNoticeList } from "@/api/notice.js";
 import { changeTimeFormat } from "@/util/updateTime";
+
+import { getBaseInfo } from "@/util/getData";
 
 Vue.use(List);
 Vue.use(Toast);
 
 export default {
   components: {
-    NotData
+    NotData,
   },
   data() {
     return {
       params: {
         pageNum: 1,
-        pageSize: 10
+        pageSize: 10,
       },
       tipText: "没有更多了",
       finished: false,
       isLoad: false,
       loading: false,
       list: [],
-      isNotData: false
+      isNotData: false,
     };
   },
   mounted() {
+    window.getData = function() {};
+
+    getBaseInfo();
     this.getList();
   },
-  filters:{
-    changeTime(val){
-      return changeTimeFormat(val)
-    }
+  filters: {
+    changeTime(val) {
+      return changeTimeFormat(val);
+    },
   },
   methods: {
-    toDetails(id){
-      location.href = `./#/notice/details?id=${id}`
+    toDetails(id) {
+      location.href = `./#/notice/details?id=${id}`;
     },
     getList() {
       if (!this.isLoad) {
         this.isLoad = true;
         this.loading = true;
         getNoticeList(this.params)
-          .then(res => {
+          .then((res) => {
             if (res.data.code == 0) {
               if (res.data.data.list.length < 1 && this.params.pageNum == 1) {
                 this.tipText = "";
@@ -89,18 +94,21 @@ export default {
                 }
               }
               this.params.pageNum++;
+            } else {
+              this.finished = true;
+              Toast.fail(res.data.message);
             }
             this.loading = false;
             this.isLoad = false;
           })
-          .catch(err => {
+          .catch((err) => {
             this.finished = true;
             this.isLoad = false;
             this.loading = false;
           });
       }
-    }
-  }
+    },
+  },
 };
 </script>
 

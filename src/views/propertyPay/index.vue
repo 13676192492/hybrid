@@ -8,7 +8,7 @@
   >
     <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
       <van-tab title="待缴">
-        <input type="button" value="111" @click="test1" />>
+        <!-- <input type="button" value="111" @click="test1" /> -->
         <van-list
           v-model="loading"
           :finished="finished"
@@ -151,7 +151,7 @@ import { changeTimeFormat } from "@/util/updateTime";
 import { param2Obj } from "@/util";
 
 //测试更改小区ID
-import { getComId } from "@/util/getData";
+import { getComId, getBaseInfo } from "@/util/getData";
 
 Vue.use(SubmitBar);
 Vue.use(Field);
@@ -208,19 +208,10 @@ export default {
     } else {
       this.active = 0;
     }
-    this.getListData();
-    // window.test = this.test;
+    window.getData = this.getListData;
+    getBaseInfo();
   },
   methods: {
-    // test1() {
-    //   window.webkit.messageHandlers.test.postMessage();
-    // },
-    // //測試
-    // test(token, comId) {
-    //   console.log(token + "和" + comId);
-
-    //   this.getListData();
-    // },
     //路由跳转（明细）
     run(arr) {
       this.$store.commit("update", arr);
@@ -250,7 +241,6 @@ export default {
         this.params.bill_status = 1;
         this.params.pay_date = null;
       }
-      console.log(123);
       this.getListData();
     },
     //选择事件
@@ -324,7 +314,7 @@ export default {
     //获取列表数据
     getListData(...state) {
       this.loading = true;
-
+      this.params.community_id = getComId();
       getList(this.params)
         .then((res) => {
           if (res.data.code == 0) {
@@ -347,6 +337,9 @@ export default {
               this.isLoading = false;
             }
             this.loading = false;
+          } else {
+            this.finished = true;
+            Toast.fail(res.data.message);
           }
         })
         .catch((err) => {

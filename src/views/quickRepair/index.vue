@@ -141,14 +141,14 @@ import {
   Button,
   List,
   Toast,
-  Dialog
+  Dialog,
 } from "vant";
 import {
   uploaderImg,
   getQuickRepairHistory,
   submitInfo,
   cancel,
-  getMemberRoom
+  getMemberRoom,
 } from "@/api/quickRepair.js";
 import { param2Obj } from "@/util";
 import NotData from "@/components/NotData";
@@ -156,7 +156,7 @@ import { Icon } from "vant";
 import lrz from "lrz";
 
 //测试更改小区ID
-import { getComId } from "@/util/getData";
+import { getComId, getBaseInfo } from "@/util/getData";
 
 Vue.use(Dialog);
 Vue.use(Toast);
@@ -171,7 +171,7 @@ Vue.use(Popup);
 export default {
   name: "complaintSuggestion",
   components: {
-    NotData
+    NotData,
   },
   data() {
     return {
@@ -200,19 +200,19 @@ export default {
         repairer: null,
         telephone: null,
         description: "",
-        image: null
+        image: null,
       },
       listParams: {
         pageNum: 1,
         pageSize: 10,
-        state: null
-      }
+        state: null,
+      },
     };
   },
   filters: {
     changeMoney(val) {
       return val.toFixed(2).toLocaleString();
-    }
+    },
   },
   mounted() {
     let init = param2Obj(location.href);
@@ -221,7 +221,9 @@ export default {
     } else {
       this.active = 0;
     }
-    this.getRoom();
+
+    window.getData = this.getRoom;
+    getBaseInfo();
   },
   filters: {
     updateState(val) {
@@ -235,7 +237,7 @@ export default {
         default:
           return "已取消";
       }
-    }
+    },
   },
   methods: {
     //路由跳转
@@ -249,7 +251,7 @@ export default {
       console.log(file);
       for (let i of file) {
         this.fileList[index.index].content = null;
-        selectFileImage(i.file).then(res => {
+        selectFileImage(i.file).then((res) => {
           this.fileList[index.index].content = res;
           index.index++;
         });
@@ -306,7 +308,8 @@ export default {
     },
     //获取房间
     getRoom() {
-      getMemberRoom(getComId()).then(res => {
+      console.log('获取房间'+getComId());
+      getMemberRoom(getComId()).then((res) => {
         if (res.data.code == 0) {
           for (let i of res.data.data) {
             this.roomIdArr.push(i.room_id);
@@ -330,9 +333,9 @@ export default {
             // 压缩前文件大小
             let before = fileList[num].file.size / 1024;
             let imgUrl = URL.createObjectURL(fileList[num].file, {
-              quality: 0.2
+              quality: 0.2,
             });
-            lrz(imgUrl,{width: 640}).then(rst => {
+            lrz(imgUrl, { width: 640 }).then((rst) => {
               // 压缩后文件大小
               let after = rst.fileLen / 1024;
               console.log(num + "和" + after);
@@ -349,7 +352,7 @@ export default {
           //   //图片上传
           function upload() {
             uploaderImg(data)
-              .then(res => {
+              .then((res) => {
                 if (res.data.code == 0) {
                   that.params.image.push(res.data.data);
                   if (num < fileList.length - 1) {
@@ -364,7 +367,7 @@ export default {
                   reject(res.data.message);
                 }
               })
-              .catch(err => {
+              .catch((err) => {
                 that.params.image = [];
                 reject();
               });
@@ -400,8 +403,9 @@ export default {
         Toast("手机号码有误，请重填");
         return;
       }
+      this.params.community_id = getComId();
       this.loading = true;
-      new Promise(resolve => {
+      new Promise((resolve) => {
         if (this.fileList.length > 0) {
           this.params.image = [];
           this.uploadImg()
@@ -416,9 +420,9 @@ export default {
           this.params.image = null;
           resolve();
         }
-      }).then(res => {
+      }).then((res) => {
         submitInfo(this.params)
-          .then(res => {
+          .then((res) => {
             if (res.data.code == 0) {
               this.init();
               Toast.success("提交成功");
@@ -428,7 +432,7 @@ export default {
             this.isTrue = false;
             this.loading = false;
           })
-          .catch(err => {
+          .catch((err) => {
             Toast.fail("网络异常，请稍后重试");
             this.loading = false;
           });
@@ -438,10 +442,10 @@ export default {
     cancelOrder(id) {
       Dialog.confirm({
         title: "确认",
-        message: "是否取消报修"
+        message: "是否取消报修",
       })
         .then(() => {
-          cancel(id).then(res => {
+          cancel(id).then((res) => {
             if (res.data.code == 0) {
               Toast.success("取消成功");
               this.list = [];
@@ -462,7 +466,7 @@ export default {
         community_id: getComId(),
         complaint_type: null,
         description: "",
-        image: []
+        image: [],
       };
       this.roomName = "请选择房间";
       this.typeValue = "请选择类型";
@@ -472,7 +476,7 @@ export default {
     getListData(...state) {
       this.loading = true;
       getQuickRepairHistory(this.listParams)
-        .then(res => {
+        .then((res) => {
           if (res.data.code == 0) {
             if (res.data.data.list.length < 1 && this.listParams.pageNum == 1) {
               this.tipText = "";
@@ -495,15 +499,15 @@ export default {
           this.loading = false;
           this.isLoad = false;
         })
-        .catch(err => {
+        .catch((err) => {
           this.finished = true;
           this.isLoading = false;
           Toast.fail("网络异常，请稍后重试");
           this.isLoad = false;
           this.loading = false;
         });
-    }
-  }
+    },
+  },
 };
 </script>
 

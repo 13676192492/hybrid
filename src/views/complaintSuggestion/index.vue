@@ -148,7 +148,7 @@ import { Icon } from "vant";
 import lrz from "lrz";
 
 //测试更改小区ID
-import { getComId } from "@/util/getData.js";
+import { getComId ,getBaseInfo } from "@/util/getData.js";
 
 Vue.use(Dialog);
 Vue.use(Toast);
@@ -210,6 +210,9 @@ export default {
     } else {
       this.active = 0;
     }
+    window.getData = function() {};
+
+    getBaseInfo();
   },
   filters: {
     updateState(val) {
@@ -382,6 +385,7 @@ export default {
         Toast("请先填写类型和内容");
         return;
       }
+      this.params.community_id = getComId();
       this.loading = true;
       new Promise((resolve) => {
         if (this.fileList.length > 0) {
